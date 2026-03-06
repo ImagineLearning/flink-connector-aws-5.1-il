@@ -427,6 +427,14 @@ under the License.
         </dependencies>
     </dependencyManagement>
 
+    <distributionManagement>
+        <repository>
+            <id>github ImagineLearning</id> <!-- this is the ID of the server -->
+            <name>GitHub ImagineLearning Apache Maven Packages</name>
+            <url>https://maven.pkg.github.com/ImagineLearning/flink-connector-aws-5.1-il</url>
+        </repository>
+    </distributionManagement>
+
     <build>
         <plugins>
             <plugin>
