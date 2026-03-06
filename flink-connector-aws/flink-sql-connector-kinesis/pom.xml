@@ -99,6 +99,14 @@ under the License.
                                         <exclude>mime.types</exclude>
                                         <exclude>LICENSE</exclude>
                                         <exclude>.gitkeep</exclude>
+                                        <exclude>checkstyle.xml</exclude>
+                                        <exclude>suppressions.xml</exclude>
+                                        <exclude>MavenPackaging.java</exclude>
+                                        <exclude>config.proto</exclude>
+                                        <exclude>messages.proto</exclude>
+                                        <exclude>java/**</exclude>
+                                        <exclude>additionalTypes/**</exclude>
+                                        <exclude>metadata/**</exclude>
                                     </excludes>
                                 </filter>
                             </filters>
