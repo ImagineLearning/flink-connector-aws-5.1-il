@@ -342,6 +342,7 @@ under the License.
                                     <include>com.google.protobuf:*</include>
                                     <include>org.apache.httpcomponents:*</include>
                                     <include>software.amazon.kinesis:*</include>
+                                    <include>software.amazon.glue:*</include>
                                     <include>software.amazon.awssdk:*</include>
                                     <include>software.amazon.eventstream:*</include>
                                     <include>software.amazon.ion:*</include>
