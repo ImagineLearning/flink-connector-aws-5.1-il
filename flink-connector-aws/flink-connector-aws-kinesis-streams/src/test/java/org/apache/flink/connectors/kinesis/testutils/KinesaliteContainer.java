@@ -20,9 +20,6 @@ package org.apache.flink.connectors.kinesis.testutils;
 import org.apache.flink.connector.aws.config.AWSConfigConstants;
 import org.apache.flink.connector.aws.testutils.AWSServicesTestUtils;
 
-import org.rnorth.ducttape.ratelimits.RateLimiter;
-import org.rnorth.ducttape.ratelimits.RateLimiterBuilder;
-import org.rnorth.ducttape.unreliables.Unreliables;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.wait.strategy.AbstractWaitStrategy;
 import org.testcontainers.utility.DockerImageName;
@@ -33,9 +30,7 @@ import software.amazon.awssdk.services.kinesis.KinesisClient;
 import software.amazon.awssdk.services.kinesis.model.ListStreamsResponse;
 
 import java.util.Properties;
-import java.util.concurrent.Callable;
-
-import static java.util.concurrent.TimeUnit.SECONDS;
+import java.util.concurrent.TimeUnit;
 
 /**
  * A testcontainer based on Kinesalite.
@@ -126,31 +121,36 @@ public class KinesaliteContainer extends GenericContainer<KinesaliteContainer> {
     }
 
     private class ListStreamsWaitStrategy extends AbstractWaitStrategy {
-        private static final int TRANSACTIONS_PER_SECOND = 1;
-
-        private final RateLimiter rateLimiter =
-                RateLimiterBuilder.newBuilder()
-                        .withRate(TRANSACTIONS_PER_SECOND, SECONDS)
-                        .withConstantThroughput()
-                        .build();
 
         @Override
         protected void waitUntilReady() {
             try {
                 Thread.sleep(10000);
             } catch (InterruptedException e) {
-                e.printStackTrace();
+                Thread.currentThread().interrupt();
                 throw new IllegalStateException("Kinesalite Container startup was interrupted");
             }
 
-            retryUntilSuccessRunner(this::list);
-        }
-
-        protected <T> void retryUntilSuccessRunner(final Callable<T> lambda) {
-            Unreliables.retryUntilSuccess(
-                    (int) startupTimeout.getSeconds(),
-                    SECONDS,
-                    () -> rateLimiter.getWhenReady(lambda));
+            long deadlineMillis =
+                    System.currentTimeMillis()
+                            + TimeUnit.SECONDS.toMillis(startupTimeout.getSeconds());
+            Exception lastException = null;
+            while (System.currentTimeMillis() < deadlineMillis) {
+                try {
+                    list();
+                    return;
+                } catch (Exception e) {
+                    lastException = e;
+                }
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    throw new IllegalStateException("Kinesalite Container startup was interrupted");
+                }
+            }
+            throw new IllegalStateException(
+                    "Kinesalite container did not start in time", lastException);
         }
 
         private ListStreamsResponse list() {

@@ -43,6 +43,7 @@ import org.apache.flink.util.TestLogger;
 import org.apache.flink.util.TestNameProvider;
 
 import org.hamcrest.MatcherAssert;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Rule;
@@ -84,7 +85,6 @@ public class FlinkKinesisITCase extends TestLogger {
             new MiniClusterWithClientResource(
                     new MiniClusterResourceConfiguration.Builder().build());
 
-    @Rule
     public KinesaliteContainer kinesalite =
             new KinesaliteContainer(DockerImageName.parse(DockerImageVersions.KINESALITE));
 
@@ -98,9 +98,15 @@ public class FlinkKinesisITCase extends TestLogger {
 
     @Before
     public void setupClient() throws Exception {
+        kinesalite.start();
         client = new KinesisPubsubClient(getContainerProperties());
         stream = TestNameProvider.getCurrentTestName().replaceAll("\\W", "");
         client.createTopic(stream, 1, new Properties());
+    }
+
+    @After
+    public void tearDown() {
+        kinesalite.stop();
     }
 
     @Test
