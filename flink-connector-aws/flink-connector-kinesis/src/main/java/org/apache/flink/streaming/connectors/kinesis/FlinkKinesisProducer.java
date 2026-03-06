@@ -35,18 +35,17 @@ import org.apache.flink.streaming.connectors.kinesis.util.KinesisConfigUtil;
 import org.apache.flink.streaming.connectors.kinesis.util.TimeoutLatch;
 import org.apache.flink.util.InstantiationUtil;
 
-import com.amazonaws.metrics.AwsSdkMetrics;
-import com.amazonaws.services.kinesis.producer.Attempt;
-import com.amazonaws.services.kinesis.producer.KinesisProducer;
-import com.amazonaws.services.kinesis.producer.KinesisProducerConfiguration;
-import com.amazonaws.services.kinesis.producer.UserRecordFailedException;
-import com.amazonaws.services.kinesis.producer.UserRecordResult;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.kinesis.producer.Attempt;
+import software.amazon.kinesis.producer.KinesisProducer;
+import software.amazon.kinesis.producer.KinesisProducerConfiguration;
+import software.amazon.kinesis.producer.UserRecordFailedException;
+import software.amazon.kinesis.producer.UserRecordResult;
 
 import java.lang.reflect.Field;
 import java.nio.ByteBuffer;
@@ -468,19 +467,14 @@ public class FlinkKinesisProducer<OUT> extends RichSinkFunction<OUT>
 
     /**
      * Remove references created by the producer, preventing the classloader to unload. References
-     * were analyzed as of versions: aws.kinesis-kpl.version = 0.14.0 aws.sdk.version = 1.11.754
-     * aws.sdkv2.version = 2.13.52
+     * were analyzed as of versions: aws.kinesis-kpl.version = 1.0.3
      */
     private void runClassLoaderReleaseHook(ClassLoader classLoader) {
-        AwsSdkMetrics.unregisterMetricAdminMBean();
-
         // shutdown FileAgeManager thread pool
         try {
             Class<?> fileAgeManagerClazz =
                     Class.forName(
-                            "com.amazonaws.services.kinesis.producer.FileAgeManager",
-                            true,
-                            classLoader);
+                            "software.amazon.kinesis.producer.FileAgeManager", true, classLoader);
             Field instanceField = fileAgeManagerClazz.getDeclaredField("instance");
             instanceField.setAccessible(true);
             Object fileAgeManager = instanceField.get(null);
