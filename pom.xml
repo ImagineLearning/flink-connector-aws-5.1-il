@@ -474,6 +474,21 @@ under the License.
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <!-- Override the integration-tests execution from flink-connector-parent
+                             to exclude TestContainers tests by default (require Docker).
+                             To include them, run with: mvn verify -Puse-testcontainers -->
+                        <id>integration-tests</id>
+                        <configuration>
+                            <excludes combine.children="append">
+                                <exclude>**/KinesisStreamsSinkITCase.java</exclude>
+                                <exclude>**/KinesisStreamsSourceITCase.java</exclude>
+                                <exclude>**/FlinkKinesisITCase.java</exclude>
+                            </excludes>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
 
             <plugin>
@@ -515,4 +530,28 @@ under the License.
             </plugin>
         </plugins>
     </build>
+
+    <profiles>
+        <profile>
+            <id>use-testcontainers</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>integration-tests</id>
+                                <configuration>
+                                    <excludes combine.children="override">
+                                        <exclude>${test.unit.pattern}</exclude>
+                                    </excludes>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>
