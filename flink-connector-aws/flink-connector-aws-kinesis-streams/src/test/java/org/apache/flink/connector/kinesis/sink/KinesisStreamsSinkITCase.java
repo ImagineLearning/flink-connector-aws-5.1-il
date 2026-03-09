@@ -264,7 +264,7 @@ class KinesisStreamsSinkITCase {
 
     private void badEndpointShouldResultInFailureWhenInFailOnErrorIs(boolean failOnError) {
         Properties properties = getDefaultProperties();
-        properties.setProperty(AWS_ENDPOINT, "https://bad-endpoint-with-uri");
+        properties.setProperty(AWS_ENDPOINT, "https://bad-endpoint-with-uri.invalid");
         assertRunWithPropertiesAndStreamShouldFailWithExceptionOfType(
                 failOnError,
                 properties,

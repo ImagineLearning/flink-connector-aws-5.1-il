@@ -26,7 +26,7 @@ under the License.
     <parent>
         <artifactId>flink-connector-aws</artifactId>
         <groupId>org.apache.flink</groupId>
-        <version>5.1.0</version>
+        <version>5.1.0-1.20.il.1</version>
     </parent>
 
     <artifactId>flink-connector-aws-parent</artifactId>
@@ -34,15 +34,8 @@ under the License.
     <packaging>pom</packaging>
 
     <modules>
-        <module>flink-connector-dynamodb</module>
-        <module>flink-connector-aws-kinesis-firehose</module>
         <module>flink-connector-aws-kinesis-streams</module>
         <module>flink-connector-kinesis</module>
-        <module>flink-connector-sqs</module>
-
-        <module>flink-sql-connector-dynamodb</module>
-        <module>flink-sql-connector-aws-kinesis-firehose</module>
-        <module>flink-sql-connector-aws-kinesis-streams</module>
         <module>flink-sql-connector-kinesis</module>
     </modules>
 

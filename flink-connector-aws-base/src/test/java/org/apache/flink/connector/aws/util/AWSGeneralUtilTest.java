@@ -884,6 +884,12 @@ class AWSGeneralUtilTest {
 
     @Test
     void testMissingWebIdentityTokenFileInCredentials() {
+        // Skip test if AWS_WEB_IDENTITY_TOKEN_FILE is set in the environment (e.g. CI/CD with
+        // IAM role-based auth), since the SDK will pick it up and not throw.
+        org.junit.jupiter.api.Assumptions.assumeTrue(
+                System.getenv("AWS_WEB_IDENTITY_TOKEN_FILE") == null,
+                "Skipping: AWS_WEB_IDENTITY_TOKEN_FILE is set in the environment");
+
         Properties properties = TestUtil.getStandardProperties();
         properties.setProperty(AWS_CREDENTIALS_PROVIDER, "WEB_IDENTITY_TOKEN");
 

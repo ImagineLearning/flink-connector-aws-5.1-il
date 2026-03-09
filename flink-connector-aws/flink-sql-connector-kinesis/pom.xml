@@ -26,7 +26,7 @@ under the License.
     <parent>
         <groupId>org.apache.flink</groupId>
         <artifactId>flink-connector-aws-parent</artifactId>
-        <version>5.1.0</version>
+        <version>5.1.0-1.20.il.1</version>
     </parent>
 
     <artifactId>flink-sql-connector-kinesis</artifactId>
@@ -99,6 +99,14 @@ under the License.
                                         <exclude>mime.types</exclude>
                                         <exclude>LICENSE</exclude>
                                         <exclude>.gitkeep</exclude>
+                                        <exclude>checkstyle.xml</exclude>
+                                        <exclude>suppressions.xml</exclude>
+                                        <exclude>MavenPackaging.java</exclude>
+                                        <exclude>config.proto</exclude>
+                                        <exclude>messages.proto</exclude>
+                                        <exclude>java/**</exclude>
+                                        <exclude>additionalTypes/**</exclude>
+                                        <exclude>metadata/**</exclude>
                                     </excludes>
                                 </filter>
                             </filters>

@@ -17,9 +17,6 @@
 
 package org.apache.flink.connector.aws.testutils;
 
-import org.rnorth.ducttape.ratelimits.RateLimiter;
-import org.rnorth.ducttape.ratelimits.RateLimiterBuilder;
-import org.rnorth.ducttape.unreliables.Unreliables;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.wait.strategy.AbstractWaitStrategy;
 import org.testcontainers.utility.DockerImageName;
@@ -28,8 +25,7 @@ import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.S3Object;
 
 import java.util.List;
-
-import static java.util.concurrent.TimeUnit.SECONDS;
+import java.util.concurrent.TimeUnit;
 
 /**
  * A class wrapping the Localstack container that provides mock implementations of many common AWS
@@ -50,26 +46,36 @@ public class LocalstackContainer extends GenericContainer<LocalstackContainer> {
     }
 
     private class ListBucketObjectsWaitStrategy extends AbstractWaitStrategy {
-        private static final int TRANSACTIONS_PER_SECOND = 1;
-
-        private final RateLimiter rateLimiter =
-                RateLimiterBuilder.newBuilder()
-                        .withRate(TRANSACTIONS_PER_SECOND, SECONDS)
-                        .withConstantThroughput()
-                        .build();
 
         @Override
         protected void waitUntilReady() {
             try {
                 Thread.sleep(30_000);
             } catch (InterruptedException e) {
-                e.printStackTrace();
+                Thread.currentThread().interrupt();
                 throw new IllegalStateException("Localstack Container startup was interrupted");
             }
-            Unreliables.retryUntilSuccess(
-                    (int) startupTimeout.getSeconds(),
-                    SECONDS,
-                    () -> rateLimiter.getWhenReady(this::list));
+
+            long deadlineMillis =
+                    System.currentTimeMillis()
+                            + TimeUnit.SECONDS.toMillis(startupTimeout.getSeconds());
+            Exception lastException = null;
+            while (System.currentTimeMillis() < deadlineMillis) {
+                try {
+                    list();
+                    return;
+                } catch (Exception e) {
+                    lastException = e;
+                }
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    throw new IllegalStateException("Localstack Container startup was interrupted");
+                }
+            }
+            throw new IllegalStateException(
+                    "Localstack container did not start in time", lastException);
         }
 
         private List<S3Object> list() {

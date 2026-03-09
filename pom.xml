@@ -31,7 +31,7 @@ under the License.
 
     <groupId>org.apache.flink</groupId>
     <artifactId>flink-connector-aws</artifactId>
-    <version>5.1.0</version>
+    <version>5.1.0-1.20.il.1</version>
 
     <name>Flink : Connectors : AWS</name>
     <packaging>pom</packaging>
@@ -64,7 +64,7 @@ under the License.
         <junit5.version>5.8.1</junit5.version>
         <assertj.version>3.21.0</assertj.version>
         <archunit.version>0.22.0</archunit.version>
-        <testcontainers.version>1.17.2</testcontainers.version>
+        <testcontainers.version>2.0.2</testcontainers.version>
         <mockito.version>3.12.4</mockito.version>
         <powermock.version>2.0.9</powermock.version>
         <kotlin.version>1.7.10</kotlin.version>
@@ -81,8 +81,6 @@ under the License.
     <modules>
         <module>flink-connector-aws-base</module>
         <module>flink-connector-aws</module>
-        <module>flink-formats-aws</module>
-        <module>flink-python</module>
         <module>flink-connector-aws-e2e-tests</module>
     </modules>
 
@@ -96,7 +94,7 @@ under the License.
 
         <dependency>
             <groupId>org.testcontainers</groupId>
-            <artifactId>junit-jupiter</artifactId>
+            <artifactId>testcontainers-junit-jupiter</artifactId>
             <scope>test</scope>
         </dependency>
 
@@ -204,6 +202,14 @@ under the License.
                 <type>pom</type>
                 <scope>import</scope>
                 <version>${jackson-bom.version}</version>
+            </dependency>
+            <!-- TestContainers 2.x shades jackson-databind but references unshaded
+                 jackson-annotations. JsonFormat.Feature.READ_UNKNOWN_ENUM_VALUES_USING_DEFAULT_VALUE
+                 was added in 2.15, so we need at least that version. -->
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-annotations</artifactId>
+                <version>2.15.3</version>
             </dependency>
 
             <dependency>
@@ -335,7 +341,7 @@ under the License.
             <dependency>
                 <groupId>com.google.protobuf</groupId>
                 <artifactId>protobuf-java</artifactId>
-                <version>3.25.5</version>
+                <version>4.29.0</version>
             </dependency>
             <dependency>
                 <groupId>com.google.guava</groupId>
@@ -345,7 +351,7 @@ under the License.
             <dependency>
                 <groupId>com.amazonaws</groupId>
                 <artifactId>amazon-kinesis-client</artifactId>
-                <version>1.14.8</version>
+                <version>1.15.2</version>
             </dependency>
             <dependency>
                 <groupId>com.squareup.okio</groupId>
@@ -421,6 +427,14 @@ under the License.
         </dependencies>
     </dependencyManagement>
 
+    <distributionManagement>
+        <repository>
+            <id>github ImagineLearning</id> <!-- this is the ID of the server -->
+            <name>GitHub ImagineLearning Apache Maven Packages</name>
+            <url>https://maven.pkg.github.com/ImagineLearning/flink-connector-aws-5.1-il</url>
+        </repository>
+    </distributionManagement>
+
     <build>
         <plugins>
             <plugin>
@@ -460,6 +474,21 @@ under the License.
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <!-- Override the integration-tests execution from flink-connector-parent
+                             to exclude TestContainers tests by default (require Docker).
+                             To include them, run with: mvn verify -Puse-testcontainers -->
+                        <id>integration-tests</id>
+                        <configuration>
+                            <excludes combine.children="append">
+                                <exclude>**/KinesisStreamsSinkITCase.java</exclude>
+                                <exclude>**/KinesisStreamsSourceITCase.java</exclude>
+                                <exclude>**/FlinkKinesisITCase.java</exclude>
+                            </excludes>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
 
             <plugin>
@@ -501,4 +530,28 @@ under the License.
             </plugin>
         </plugins>
     </build>
+
+    <profiles>
+        <profile>
+            <id>use-testcontainers</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>integration-tests</id>
+                                <configuration>
+                                    <excludes combine.children="override">
+                                        <exclude>${test.unit.pattern}</exclude>
+                                    </excludes>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>

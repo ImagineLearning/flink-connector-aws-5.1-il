@@ -31,7 +31,7 @@ import org.apache.flink.streaming.connectors.kinesis.config.ConsumerConfigConsta
 import org.apache.flink.streaming.connectors.kinesis.config.ProducerConfigConstants;
 import org.apache.flink.streaming.connectors.kinesis.config.RecoverableErrorsConfig;
 
-import com.amazonaws.services.kinesis.producer.KinesisProducerConfiguration;
+import software.amazon.kinesis.producer.KinesisProducerConfiguration;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -498,7 +498,7 @@ public class KinesisConfigUtil {
         KinesisProducerConfiguration kpc = KinesisProducerConfiguration.fromProperties(config);
         kpc.setRegion(config.getProperty(AWSConfigConstants.AWS_REGION));
 
-        kpc.setCredentialsProvider(AWSUtil.getCredentialsProvider(config));
+        kpc.setCredentialsProvider(AWSGeneralUtil.getCredentialsProvider(config));
 
         // we explicitly lower the credential refresh delay (default is 5 seconds)
         // to avoid an ignorable interruption warning that occurs when shutting down the
